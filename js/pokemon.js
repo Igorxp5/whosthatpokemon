@@ -24,6 +24,8 @@ var DIFFICULTY = {
 var pendingDifficulty = DIFFICULTY.UNSET;
 var imageDirectory;
 
+var forgivingSpellingLanguages = ['en', 'pt'];
+
 // For generation selection
 var newGen = [];
 var allGenerations = {
@@ -352,7 +354,7 @@ function setLanguage(l, changedByUser) {
     $('.' + settings.language + 'LanguageSelector').addClass('selected');
 
     // Hide forgiving spelling option if the language is not english, and set the spelling option to exact
-    if (l !== 'en') {
+    if (forgivingSpellingLanguages.indexOf(l) == -1) {
         $('#spelling-true').hide();
         setForgivingSpelling(false);
     } else {
@@ -427,7 +429,7 @@ function revealPokemon(correctlyGuessed) {
     $els.input.addClass('disabled');
 
     // Give the Pokemon name
-    $els.input.val(currentPokemonNames[settings.language]);
+    $els.input.val(getLocalCurrentPokemonNames());
 
     $('.currentCountText').html(correctCount[settings.difficulty]);
     $('.bestCountText').html(records.streaks[settings.difficulty]);
@@ -868,7 +870,12 @@ function getPokemonNames(number) {
 }
 
 function getLocalPokemonName(number) {
-    return getPokemonNames(number)[settings.language];
+    var pokemonNames = getPokemonNames(number);
+    return pokemonNames[settings.language] || pokemonNames.en;
+}
+
+function getLocalCurrentPokemonNames() {
+    return currentPokemonNames[settings.language] || currentPokemonNames.en;
 }
 
 
@@ -901,9 +908,11 @@ function getPokemonSoundUrl(number) {
 function checkPokemonAnswer(g) {
     var guess = removeAccents(g.toLowerCase());
 
-    if (settings.language === 'en' && settings.forgivingSpelling && soundAlike(guess, currentPokemonNames.en) ) {
+    var localCurrentPokemonNames = getLocalCurrentPokemonNames();
+    if (forgivingSpellingLanguages.indexOf(settings.language) != -1 
+        && settings.forgivingSpelling && soundAlike(guess, localCurrentPokemonNames) ) {
         revealPokemon(true);
-    } else if(guess == removeAccents(currentPokemonNames[settings.language])) {
+    } else if(guess == removeAccents(localCurrentPokemonNames)) {
         revealPokemon(true);
     }
 }
